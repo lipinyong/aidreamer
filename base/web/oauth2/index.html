@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth2 配置 - Base Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        h1 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .form-section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .form-section:last-child {
+            border-bottom: none;
+        }
+        .form-section h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #333;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #1890ff;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+        label .required {
+            color: #ff4d4f;
+            margin-left: 4px;
+        }
+        label .help {
+            font-weight: normal;
+            color: #999;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+        }
+        input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+        }
+        textarea {
+            min-height: 80px;
+            font-family: monospace;
+            resize: vertical;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+        }
+        .checkbox-group label {
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        button.primary {
+            background: #1890ff;
+            color: white;
+        }
+        button.primary:hover {
+            background: #40a9ff;
+        }
+        button.secondary {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        button.secondary:hover {
+            background: #e8e8e8;
+        }
+        .message {
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            display: none;
+        }
+        .message.show {
+            display: block;
+        }
+        .message.success {
+            background: #f6ffed;
+            border: 1px solid #b7eb8f;
+            color: #52c41a;
+        }
+        .message.error {
+            background: #fff2f0;
+            border: 1px solid #ffccc7;
+            color: #ff4d4f;
+        }
+        .message.info {
+            background: #e6f7ff;
+            border: 1px solid #91d5ff;
+            color: #1890ff;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #1890ff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .url-preview {
+            background: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            word-break: break-all;
+        }
+    </style>
+    <script>
+        const BASE_PATH = (function() {
+            const path = window.location.pathname;
+            const idx = path.indexOf('/oauth2');
+            return idx > 0 ? path.substring(0, idx) : '';
+        })();
+        // 加载配置
+        async function loadConfig() {
+            try {
+                const response = await fetch(BASE_PATH + '/raw/etc/config.yaml');
+                if (!response.ok) {
+                    throw new Error('加载配置失败');
+                }
+                const text = await response.text();
+                
+                // 解析 YAML 配置（简单解析）
+                const oauth2Config = parseOAuth2Config(text);
+                fillForm(oauth2Config);
+                updateUrlPreview();
+            } catch (error) {
+                showMessage('加载配置失败: ' + error.message, 'error');
+            }
+        }
+
+        // 简单解析 OAuth2 配置
+        function parseOAuth2Config(yamlText) {
+            const config = {
+                enabled: false,
+                server: {
+                    host: 'sso.example.com',
+                    protocol: 'HTTPS',
+                    authorize_path: '/oauth/v2/authorize',
+                    token_path: '/oauth/v2/token',
+                    resource_path: '/oauth/v2/resource',
+                    userinfo_path: '/oauth/v2/me'
+                },
+                client: {
+                    client_id: '',
+                    client_secret: '',
+                    callback_url: 'http://192.168.0.119:4999/server/?s=/api/extLogin/oauth2',
+                    logout_callback_url: ''
+                },
+                login: {
+                    button_text: '使用 OAuth2 登录'
+                },
+                admin: {
+                    oauth2_protocol: 'HTTPS',
+                    oauth2_userinfo_path: '/oauth/v2/me'
+                }
+            };
+
+            // 简单解析（实际应该使用 YAML 解析库）
+            const lines = yamlText.split('\n');
+            let inOAuth2 = false;
+            let currentSection = null;
+            let indentLevel = 0;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line || line.startsWith('#')) continue;
+
+                if (line.startsWith('oauth2:')) {
+                    inOAuth2 = true;
+                    continue;
+                }
+
+                if (inOAuth2) {
+                    if (line.startsWith('enabled:')) {
+                        config.enabled = line.split(':')[1].trim() === 'true';
+                    } else if (line.startsWith('server:')) {
+                        currentSection = 'server';
+                    } else if (line.startsWith('client:')) {
+                        currentSection = 'client';
+                    } else if (line.startsWith('login:')) {
+                        currentSection = 'login';
+                    } else if (line.startsWith('admin:')) {
+                        currentSection = 'admin';
+                    } else if (line.includes(':')) {
+                        const [key, ...valueParts] = line.split(':');
+                        const value = valueParts.join(':').trim();
+                        const cleanKey = key.trim();
+                        
+                        if (currentSection === 'server') {
+                            if (cleanKey === 'host') config.server.host = value;
+                            else if (cleanKey === 'protocol') config.server.protocol = value;
+                            else if (cleanKey === 'authorize_path') config.server.authorize_path = value;
+                            else if (cleanKey === 'token_path') config.server.token_path = value;
+                            else if (cleanKey === 'resource_path') config.server.resource_path = value;
+                            else if (cleanKey === 'userinfo_path') config.server.userinfo_path = value;
+                        } else if (currentSection === 'client') {
+                            if (cleanKey === 'client_id') config.client.client_id = value.replace(/^["']|["']$/g, '');
+                            else if (cleanKey === 'client_secret') config.client.client_secret = value.replace(/^["']|["']$/g, '');
+                            else if (cleanKey === 'callback_url') config.client.callback_url = value.replace(/^["']|["']$/g, '');
+                            else if (cleanKey === 'logout_callback_url') config.client.logout_callback_url = value.replace(/^["']|["']$/g, '');
+                        } else if (currentSection === 'login') {
+                            if (cleanKey === 'button_text') config.login.button_text = value.replace(/^["']|["']$/g, '');
+                        } else if (currentSection === 'admin') {
+                            if (cleanKey === 'oauth2_protocol') config.admin.oauth2_protocol = value;
+                            else if (cleanKey === 'oauth2_userinfo_path') config.admin.oauth2_userinfo_path = value;
+                        }
+                    }
+                }
+            }
+
+            return config;
+        }
+
+        // 填充表单
+        function fillForm(config) {
+            document.getElementById('enabled').checked = config.enabled;
+            document.getElementById('server-host').value = config.server.host;
+            document.getElementById('server-protocol').value = config.server.protocol;
+            document.getElementById('authorize-path').value = config.server.authorize_path;
+            document.getElementById('token-path').value = config.server.token_path;
+            document.getElementById('resource-path').value = config.server.resource_path;
+            document.getElementById('userinfo-path').value = config.server.userinfo_path;
+            document.getElementById('client-id').value = config.client.client_id;
+            document.getElementById('client-secret').value = config.client.client_secret;
+            document.getElementById('callback-url').value = config.client.callback_url;
+            document.getElementById('logout-callback-url').value = config.client.logout_callback_url;
+            document.getElementById('button-text').value = config.login.button_text;
+            document.getElementById('admin-protocol').value = config.admin.oauth2_protocol;
+            document.getElementById('admin-userinfo-path').value = config.admin.oauth2_userinfo_path;
+        }
+
+        // 更新 URL 预览
+        function updateUrlPreview() {
+            const protocol = document.getElementById('server-protocol').value.toLowerCase();
+            const host = document.getElementById('server-host').value;
+            const authorizePath = document.getElementById('authorize-path').value;
+            const tokenPath = document.getElementById('token-path').value;
+            const userinfoPath = document.getElementById('userinfo-path').value;
+
+            document.getElementById('authorize-url-preview').textContent = 
+                `${protocol}://${host}${authorizePath}`;
+            document.getElementById('token-url-preview').textContent = 
+                `${protocol}://${host}${tokenPath}`;
+            document.getElementById('userinfo-url-preview').textContent = 
+                `${protocol}://${host}${userinfoPath}`;
+        }
+
+        // 保存配置
+        async function saveConfig() {
+            const config = {
+                enabled: document.getElementById('enabled').checked,
+                server: {
+                    host: document.getElementById('server-host').value.trim(),
+                    protocol: document.getElementById('server-protocol').value,
+                    authorize_path: document.getElementById('authorize-path').value.trim(),
+                    token_path: document.getElementById('token-path').value.trim(),
+                    resource_path: document.getElementById('resource-path').value.trim(),
+                    userinfo_path: document.getElementById('userinfo-path').value.trim()
+                },
+                client: {
+                    client_id: document.getElementById('client-id').value.trim(),
+                    client_secret: document.getElementById('client-secret').value.trim(),
+                    callback_url: document.getElementById('callback-url').value.trim(),
+                    logout_callback_url: document.getElementById('logout-callback-url').value.trim()
+                },
+                login: {
+                    button_text: document.getElementById('button-text').value.trim()
+                },
+                admin: {
+                    oauth2_protocol: document.getElementById('admin-protocol').value,
+                    oauth2_userinfo_path: document.getElementById('admin-userinfo-path').value.trim()
+                }
+            };
+
+            // 验证必填项
+            if (config.enabled) {
+                if (!config.server.host) {
+                    showMessage('OAuth 服务器地址不能为空', 'error');
+                    return;
+                }
+                if (!config.client.client_id) {
+                    showMessage('Client ID 不能为空', 'error');
+                    return;
+                }
+                if (!config.client.client_secret) {
+                    showMessage('Client Secret 不能为空', 'error');
+                    return;
+                }
+            }
+
+            try {
+                // 调用 API 保存配置
+                const response = await fetch(BASE_PATH + '/api/config/oauth2', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || '保存配置失败');
+                }
+                
+                const result = await response.json();
+                showMessage(result.message || '配置保存成功', 'success');
+                
+                // 保存成功后，重新加载配置以显示最新内容
+                setTimeout(() => {
+                    loadConfig();
+                }, 1000);
+            } catch (error) {
+                showMessage('保存配置失败: ' + error.message, 'error');
+            }
+        }
+
+        // 生成 YAML 配置
+        function generateYAML(config) {
+            let yaml = `# OAuth2 配置（可选）
+oauth2:
+  enabled: ${config.enabled}  # 是否启用 OAuth2 登录
+  # OAuth2 服务器配置
+  server:
+    host: ${config.server.host}  # OAuth 服务器地址
+    protocol: ${config.server.protocol}  # 协议类型：HTTPS 或 HTTP
+    authorize_path: ${config.server.authorize_path}  # 授权路径
+    token_path: ${config.server.token_path}  # 获取 AccessToken 路径
+    resource_path: ${config.server.resource_path}  # 资源路径
+    userinfo_path: ${config.server.userinfo_path}  # 用户信息路径
+  # OAuth2 客户端配置
+  client:
+    client_id: "${config.client.client_id}"  # OAuth 客户端 ID（需要配置）
+    client_secret: "${config.client.client_secret}"  # OAuth 客户端密钥（需要配置）
+    callback_url: ${config.client.callback_url}  # 回调地址
+    logout_callback_url: ${config.client.logout_callback_url ? `"${config.client.logout_callback_url}"` : '""'}  # OAuth 登出后的跳转地址（可选）
+  # 登录页面显示配置
+  login:
+    button_text: "${config.login.button_text}"  # 在登录页面显示的 OAuth2 登录入口文字
+  # 管理员配置（兼容旧配置）
+  admin:
+    oauth2_protocol: ${config.admin.oauth2_protocol}  # OAuth2 协议类型
+    oauth2_userinfo_path: ${config.admin.oauth2_userinfo_path}  # 用户信息路径
+`;
+            return yaml;
+        }
+
+        // 测试连接
+        async function testConnection() {
+            const protocol = document.getElementById('server-protocol').value.toLowerCase();
+            const host = document.getElementById('server-host').value;
+            const userinfoPath = document.getElementById('userinfo-path').value;
+            const url = `${protocol}://${host}${userinfoPath}`;
+
+            showMessage('正在测试连接...', 'info');
+            
+            try {
+                // TODO: 实现实际的连接测试
+                // const response = await fetch(url, { method: 'OPTIONS' });
+                showMessage('连接测试功能待实现', 'info');
+            } catch (error) {
+                showMessage('连接测试失败: ' + error.message, 'error');
+            }
+        }
+
+        // 显示消息
+        function showMessage(message, type) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.textContent = message;
+            msgDiv.className = `message ${type} show`;
+            setTimeout(() => {
+                msgDiv.classList.remove('show');
+            }, 5000);
+        }
+
+        // 页面加载时初始化
+        window.onload = function() {
+            loadConfig();
+            
+            // 监听输入变化，更新 URL 预览
+            ['server-protocol', 'server-host', 'authorize-path', 'token-path', 'userinfo-path'].forEach(id => {
+                document.getElementById(id).addEventListener('input', updateUrlPreview);
+            });
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <a href="../manager/index.html" class="back-link">← 返回配置管理</a>
+        <h1>OAuth2 配置</h1>
+        <p class="subtitle">配置 OAuth2 登录相关参数</p>
+
+        <div id="message" class="message"></div>
+
+        <form id="oauth2-form">
+            <!-- 基本设置 -->
+            <div class="form-section">
+                <h2>基本设置</h2>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enabled" name="enabled">
+                        <label for="enabled">启用 OAuth2 登录</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 服务器配置 -->
+            <div class="form-section">
+                <h2>OAuth2 服务器配置</h2>
+                <div class="form-group">
+                    <label for="server-host">
+                        OAuth 服务器 <span class="required">*</span>
+                        <span class="help">OAuth 服务器的域名或 IP 地址</span>
+                    </label>
+                    <input type="text" id="server-host" name="server-host" 
+                           placeholder="sso.example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="server-protocol">
+                        协议类型 <span class="required">*</span>
+                    </label>
+                    <select id="server-protocol" name="server-protocol">
+                        <option value="HTTPS">HTTPS</option>
+                        <option value="HTTP">HTTP</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="authorize-path">
+                            Authorize 路径 <span class="required">*</span>
+                        </label>
+                        <input type="text" id="authorize-path" name="authorize-path" 
+                               placeholder="/oauth/v2/authorize" required>
+                        <div class="url-preview" id="authorize-url-preview"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="token-path">
+                            AccessToken 路径 <span class="required">*</span>
+                        </label>
+                        <input type="text" id="token-path" name="token-path" 
+                               placeholder="/oauth/v2/token" required>
+                        <div class="url-preview" id="token-url-preview"></div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="resource-path">
+                            Resource 路径
+                        </label>
+                        <input type="text" id="resource-path" name="resource-path" 
+                               placeholder="/oauth/v2/resource">
+                    </div>
+                    <div class="form-group">
+                        <label for="userinfo-path">
+                            用户信息路径 <span class="required">*</span>
+                        </label>
+                        <input type="text" id="userinfo-path" name="userinfo-path" 
+                               placeholder="/oauth/v2/me" required>
+                        <div class="url-preview" id="userinfo-url-preview"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 客户端配置 -->
+            <div class="form-section">
+                <h2>OAuth2 客户端配置</h2>
+                <div class="form-group">
+                    <label for="client-id">
+                        Client ID <span class="required">*</span>
+                        <span class="help">OAuth 客户端 ID</span>
+                    </label>
+                    <input type="text" id="client-id" name="client-id" 
+                           placeholder="请输入 Client ID" required>
+                </div>
+                <div class="form-group">
+                    <label for="client-secret">
+                        Client Secret <span class="required">*</span>
+                        <span class="help">OAuth 客户端密钥</span>
+                    </label>
+                    <input type="password" id="client-secret" name="client-secret" 
+                           placeholder="请输入 Client Secret" required>
+                </div>
+                <div class="form-group">
+                    <label for="callback-url">
+                        Callback URL <span class="required">*</span>
+                        <span class="help">OAuth 回调地址</span>
+                    </label>
+                    <input type="text" id="callback-url" name="callback-url" 
+                           placeholder="http://192.168.0.119:4999/server/?s=/api/extLogin/oauth2" required>
+                </div>
+                <div class="form-group">
+                    <label for="logout-callback-url">
+                        Logout 回调地址
+                        <span class="help">OAuth 登出后的跳转地址（可选）</span>
+                    </label>
+                    <input type="text" id="logout-callback-url" name="logout-callback-url" 
+                           placeholder="可选，留空则不使用">
+                </div>
+            </div>
+
+            <!-- 登录页面配置 -->
+            <div class="form-section">
+                <h2>登录页面配置</h2>
+                <div class="form-group">
+                    <label for="button-text">
+                        入口文字提示
+                        <span class="help">在登录页面显示的 OAuth2 登录入口文字</span>
+                    </label>
+                    <input type="text" id="button-text" name="button-text" 
+                           placeholder="使用 OAuth2 登录">
+                </div>
+            </div>
+
+            <!-- 管理员配置（兼容旧配置） -->
+            <div class="form-section">
+                <h2>管理员配置（兼容旧配置）</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="admin-protocol">
+                            admin.oauth2_protocol
+                        </label>
+                        <select id="admin-protocol" name="admin-protocol">
+                            <option value="HTTPS">HTTPS</option>
+                            <option value="HTTP">HTTP</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-userinfo-path">
+                            admin.oauth2_userinfo_path
+                        </label>
+                        <input type="text" id="admin-userinfo-path" name="admin-userinfo-path" 
+                               placeholder="/oauth/v2/me">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="button-group">
+                <button type="button" class="primary" onclick="saveConfig()">保存配置</button>
+                <button type="button" class="secondary" onclick="loadConfig()">重新加载</button>
+                <button type="button" class="secondary" onclick="testConnection()">测试连接</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

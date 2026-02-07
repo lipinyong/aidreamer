@@ -1,0 +1,75 @@
+{"time": "2026-02-06 01:37:59,537", "level": "INFO", "module": "baseplatform", "message": "Base Platform 启动中..."}
+{"time": "2026-02-06 01:37:59,542", "level": "INFO", "module": "baseplatform.plugin", "message": "加载插件: router"}
+{"time": "2026-02-06 01:37:59,552", "level": "INFO", "module": "baseplatform.cron", "message": "计划任务管理器启动"}
+{"time": "2026-02-06 01:37:59,553", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/module"}
+{"time": "2026-02-06 01:37:59,554", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/plugin"}
+{"time": "2026-02-06 01:37:59,554", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/service"}
+{"time": "2026-02-06 01:37:59,555", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/etc"}
+{"time": "2026-02-06 01:37:59,598", "level": "INFO", "module": "baseplatform", "message": "文件监控已启动"}
+{"time": "2026-02-06 01:37:59,599", "level": "INFO", "module": "baseplatform", "message": "Base Platform 启动完成"}
+{"time": "2026-02-06 19:41:56,442", "level": "INFO", "module": "baseplatform", "message": "根路径处理器被调用"}
+{"time": "2026-02-06 19:41:56,448", "level": "INFO", "module": "baseplatform", "message": "默认文件列表: ['index.html', 'index.md', 'index.py', 'README.md']"}
+{"time": "2026-02-06 19:41:56,453", "level": "INFO", "module": "baseplatform", "message": "检查默认文件: /app/web/index.html, 存在: False"}
+{"time": "2026-02-06 19:41:56,461", "level": "INFO", "module": "baseplatform", "message": "检查默认文件: /app/web/index.md, 存在: True"}
+{"time": "2026-02-06 19:41:56,465", "level": "INFO", "module": "baseplatform", "message": "找到默认文件: index.md, 类型: .md"}
+{"time": "2026-02-06 19:41:56,537", "level": "INFO", "module": "baseplatform", "message": "成功渲染 Markdown 文件: index.md"}
+{"time": "2026-02-06 19:44:59,691", "level": "INFO", "module": "baseplatform", "message": "根路径处理器被调用"}
+{"time": "2026-02-06 19:45:00,530", "level": "INFO", "module": "baseplatform", "message": "默认文件列表: ['index.html', 'index.md', 'index.py', 'README.md']"}
+{"time": "2026-02-06 19:45:00,533", "level": "INFO", "module": "baseplatform", "message": "检查默认文件: /app/web/index.html, 存在: False"}
+{"time": "2026-02-06 19:45:00,537", "level": "INFO", "module": "baseplatform", "message": "检查默认文件: /app/web/index.md, 存在: True"}
+{"time": "2026-02-06 19:45:00,539", "level": "INFO", "module": "baseplatform", "message": "找到默认文件: index.md, 类型: .md"}
+{"time": "2026-02-06 19:45:00,543", "level": "INFO", "module": "baseplatform", "message": "成功渲染 Markdown 文件: index.md"}
+{"time": "2026-02-06 21:06:06,359", "level": "INFO", "module": "baseplatform", "message": "Base Platform 关闭中..."}
+{"time": "2026-02-06 21:06:06,375", "level": "INFO", "module": "baseplatform", "message": "文件监控已停止"}
+{"time": "2026-02-06 21:06:06,377", "level": "INFO", "module": "baseplatform.cron", "message": "计划任务管理器停止"}
+{"time": "2026-02-06 21:06:06,380", "level": "INFO", "module": "baseplatform", "message": "Base Platform 已关闭"}
+{"time": "2026-02-06 21:11:20,714", "level": "INFO", "module": "baseplatform", "message": "Base Platform 启动中..."}
+{"time": "2026-02-06 21:11:21,547", "level": "INFO", "module": "baseplatform.plugin", "message": "加载插件: router"}
+{"time": "2026-02-06 21:11:21,570", "level": "INFO", "module": "baseplatform.cron", "message": "计划任务管理器启动"}
+{"time": "2026-02-06 21:11:21,571", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/module"}
+{"time": "2026-02-06 21:11:21,572", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/plugin"}
+{"time": "2026-02-06 21:11:21,574", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/service"}
+{"time": "2026-02-06 21:11:21,574", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/etc"}
+{"time": "2026-02-06 21:11:21,663", "level": "INFO", "module": "baseplatform", "message": "文件监控已启动"}
+{"time": "2026-02-06 21:11:21,664", "level": "INFO", "module": "baseplatform", "message": "Base Platform 启动完成"}
+{"time": "2026-02-06 21:11:25,416", "level": "INFO", "module": "baseplatform", "message": "根路径处理器被调用"}
+{"time": "2026-02-06 21:11:25,418", "level": "INFO", "module": "baseplatform", "message": "默认文件列表: ['index.html', 'index.md', 'index.py', 'README.md']"}
+{"time": "2026-02-06 21:11:25,420", "level": "INFO", "module": "baseplatform", "message": "检查默认文件: /app/web/index.html, 存在: False"}
+{"time": "2026-02-06 21:11:25,425", "level": "INFO", "module": "baseplatform", "message": "检查默认文件: /app/web/index.md, 存在: True"}
+{"time": "2026-02-06 21:11:25,434", "level": "INFO", "module": "baseplatform", "message": "找到默认文件: index.md, 类型: .md"}
+{"time": "2026-02-06 21:11:25,500", "level": "INFO", "module": "baseplatform", "message": "成功渲染 Markdown 文件: index.md"}
+{"time": "2026-02-06 21:13:19,021", "level": "INFO", "module": "baseplatform", "message": "Base Platform 关闭中..."}
+{"time": "2026-02-06 21:13:19,049", "level": "INFO", "module": "baseplatform", "message": "文件监控已停止"}
+{"time": "2026-02-06 21:13:19,052", "level": "INFO", "module": "baseplatform.cron", "message": "计划任务管理器停止"}
+{"time": "2026-02-06 21:13:19,054", "level": "INFO", "module": "baseplatform", "message": "Base Platform 已关闭"}
+{"time": "2026-02-06 21:15:14,241", "level": "INFO", "module": "baseplatform", "message": "Base Platform 启动中..."}
+{"time": "2026-02-06 21:15:14,254", "level": "INFO", "module": "baseplatform.plugin", "message": "加载插件: router"}
+{"time": "2026-02-06 21:15:14,283", "level": "INFO", "module": "baseplatform.cron", "message": "计划任务管理器启动"}
+{"time": "2026-02-06 21:15:14,285", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/module"}
+{"time": "2026-02-06 21:15:14,295", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/plugin"}
+{"time": "2026-02-06 21:15:14,296", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/service"}
+{"time": "2026-02-06 21:15:14,297", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/etc"}
+{"time": "2026-02-06 21:15:14,463", "level": "INFO", "module": "baseplatform", "message": "文件监控已启动"}
+{"time": "2026-02-06 21:15:14,464", "level": "INFO", "module": "baseplatform", "message": "Base Platform 启动完成"}
+{"time": "2026-02-07 12:33:16,813", "level": "INFO", "module": "baseplatform", "message": "Base Platform 关闭中..."}
+{"time": "2026-02-07 12:33:16,855", "level": "INFO", "module": "baseplatform", "message": "文件监控已停止"}
+{"time": "2026-02-07 12:33:16,857", "level": "INFO", "module": "baseplatform.cron", "message": "计划任务管理器停止"}
+{"time": "2026-02-07 12:33:16,859", "level": "INFO", "module": "baseplatform", "message": "Base Platform 已关闭"}
+{"time": "2026-02-07 12:41:50,457", "level": "INFO", "module": "baseplatform", "message": "Base Platform 启动中..."}
+{"time": "2026-02-07 12:41:50,461", "level": "INFO", "module": "baseplatform.plugin", "message": "加载插件: router"}
+{"time": "2026-02-07 12:41:50,471", "level": "INFO", "module": "baseplatform.cron", "message": "计划任务管理器启动"}
+{"time": "2026-02-07 12:41:50,471", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/module"}
+{"time": "2026-02-07 12:41:50,472", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/plugin"}
+{"time": "2026-02-07 12:41:50,473", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/service"}
+{"time": "2026-02-07 12:41:50,474", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/etc"}
+{"time": "2026-02-07 12:41:50,542", "level": "INFO", "module": "baseplatform", "message": "文件监控已启动"}
+{"time": "2026-02-07 12:41:50,544", "level": "INFO", "module": "baseplatform", "message": "Base Platform 启动完成"}
+{"time": "2026-02-07 12:53:10,700", "level": "INFO", "module": "baseplatform", "message": "Base Platform 启动中..."}
+{"time": "2026-02-07 12:53:10,707", "level": "INFO", "module": "baseplatform.plugin", "message": "加载插件: router"}
+{"time": "2026-02-07 12:53:10,717", "level": "INFO", "module": "baseplatform.cron", "message": "计划任务管理器启动"}
+{"time": "2026-02-07 12:53:10,718", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/module"}
+{"time": "2026-02-07 12:53:10,719", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/plugin"}
+{"time": "2026-02-07 12:53:10,720", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/service"}
+{"time": "2026-02-07 12:53:10,721", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/etc"}
+{"time": "2026-02-07 12:53:10,786", "level": "INFO", "module": "baseplatform", "message": "文件监控已启动"}
+{"time": "2026-02-07 12:53:10,788", "level": "INFO", "module": "baseplatform", "message": "Base Platform 启动完成"}

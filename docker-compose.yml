@@ -1,0 +1,24 @@
+services:
+  baseplatform:
+    build: 
+      context: ./base
+      dockerfile: Dockerfile
+    container_name: baseplatform
+    ports:
+      - "127.0.0.1:5000:5000"
+    environment:
+      - APP_NAME=FastAPI Base Platform
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=5000
+    # Windows Docker Desktop 路径挂载问题解决方案：
+    # 方案1: 使用命名卷（推荐用于生产环境）
+    volumes:
+      - /mnt/f/code/lipy-service/base:/app
+      - /mnt/f/code/lipy-service/sessions:/app/etc/sessions
+    restart: unless-stopped
+    networks:
+      - 1panel-network
+
+networks:
+  1panel-network:
+    external: true

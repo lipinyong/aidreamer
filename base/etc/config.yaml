@@ -1,0 +1,73 @@
+app:
+  name: FastAPI Base Platform
+  version: 1.0.0
+  debug: false
+
+server:
+  host: 0.0.0.0
+  port: 5000
+  reload: false
+
+security:
+  secret_key: ${SECRET_KEY}
+  algorithm: HS256
+  access_token_expire_minutes: 30
+  api_auth_enabled: false  # 是否启用 API 认证，false 表示关闭认证
+  system_tokens:
+    - token: system-token-12345
+      description: 系统级 Token，用于脚本调用
+
+logging:
+  level: INFO
+  format: json
+  file: logs/app.log
+  max_bytes: 10485760
+  backup_count: 5
+
+session:
+  storage_type: file
+  storage_path: etc/sessions
+  expire_minutes: 1440
+
+# 默认文件配置（按优先级排序）
+default_files:
+  - index.html
+  - index.md
+  - index.py
+  - README.md
+
+# OAuth2 配置（可选）
+oauth2:
+  enabled: true 
+  server:
+    host: www.lubanlou.com  
+    protocol: HTTPS  
+    authorize_path: /uaa/oauth/authorize  
+    token_path: /uaa/oauth/token  
+    resource_path:   
+    userinfo_path: /uaa/user/me 
+  client:
+    client_id: acme
+    client_secret: acmesecret
+    callback_url: http://127.0.0.1/api/extLogin/oauth2
+    logout_callback_url: http://127.0.0.1/logout
+  login:
+    button_text:
+
+# 文件上传配置
+upload:
+  max_size: 10485760  # 10MB
+  allowed_extensions:
+    - .jpg
+    - .jpeg
+    - .png
+    - .gif
+    - .pdf
+    - .txt
+    - .md
+
+# jsonserv 配置
+jsonserv:
+  enabled: true
+  data_path: etc/data
+  auto_reload: true
