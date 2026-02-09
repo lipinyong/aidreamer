@@ -18,7 +18,7 @@ Base 是平台的基础服务框架，提供整个项目中每个微服务的基
 - **会话/认证**：JWT（python-jose）、OAuth2 对接、系统级 Token
 - **用户存储**：本地 users.json（由用户服务专控，jsonserv 排除）
 
----
+
 
 ## 当前目录结构（按实际代码）
 
@@ -36,37 +36,26 @@ base/
 ├── start.py                    # 启动命令
 ├── requirements.txt            # Python 依赖
 ├── core/                       # 核心路由与监控（当前实现）
-│   ├── __init__.py
 │   ├── file_watcher.py         # 目录监控：module/plugin/service/etc，变更回调
 │   └── routes.py               # 路由注册：/health, /, /raw, /tree, /api/*, /openapi.json, /{path}
 ├── module/                     # 全局组件（变更自动加载/重载）
-│   ├── __init__.py
 │   ├── config.py               # 配置加载、环境变量替换、config.yaml 热加载
 │   ├── logger.py               # 日志配置（级别、格式、轮转文件）
 │   ├── markdown.py             # Markdown 渲染
 │   └── webhandle.py            # Web 请求处理：动态加载 web/*.py，handle_request，sub_path
 ├── plugin/                     # 插件（变更自动加载/重载）
-│   ├── __init__.py
 │   └── router.py               # PluginManager、Plugin 基类、pre_process/post_process
 ├── service/                    # 后台服务
-│   ├── __init__.py
 │   ├── cron/                   # 计划任务（骨架，待实现）
-│   │   └── __init__.py
 │   ├── datasource/             # 多数据源（骨架，SQLite 待实现）
-│   │   └── __init__.py
 │   ├── jsonserv/               # JSON Mock 服务（已实现）
-│   │   ├── __init__.py
 │   │   ├── core.py             # JSONDataStore、CRUD、FileLock、查询过滤
 │   │   └── router.py           # 扫描 etc/data/*.json，排除列表，注册 /api/jsonserv/*
 │   └── user/                   # 用户管理服务（已实现）
-│       ├── __init__.py
 │       └── core.py             # UserService、本地/OAuth2 用户、密码 SHA256+bcrypt
 └── web/                        # Web 与 API 根目录
-    ├── __init__.py
     ├── index.html / index.md   # 站点首页
     ├── user.py                 # 用户 API：/api/user/*（登录、CRUD、改密）
-    ├── example/
-    │   └── hello.py            # 示例 API
     ├── login/
     │   ├── index.html
     │   └── oauth2.py           # OAuth2 登录入口与回调
@@ -89,12 +78,12 @@ base/
     └── uploads/                # 上传目录
 ```
 
----
+
 
 ## 需求与实现状态总览
 
 | 模块 | 需求摘要 | 实现状态 |
-|------|----------|----------|
+||-|-|
 | 配置管理 | 主配置、环境变量、热加载、管理界面 | ✅ 已实现 config.yaml + 热加载 + manager 配置 API（如 OAuth2） |
 | 模块系统 | module 自动加载、webhandle、markdown | ✅ 已实现，含 config、logger |
 | 插件系统 | plugin 预处理/后处理、优先级 | ✅ 已实现 PluginManager、Plugin 基类 |
@@ -108,8 +97,6 @@ base/
 | 多数据源 | datasource 配置与调用 | ⚠️ 骨架已实现，SQLite 待实现 |
 | 计划任务 | cron 调度与执行 | ⚠️ 骨架已实现，逻辑待实现 |
 | 自动加载 | 监控 module/plugin/service/etc | ✅ 已实现（core/file_watcher） |
-
----
 
 ## 1. 配置管理
 
@@ -138,8 +125,6 @@ base/
 - 配置保存 API：`web/manager/config.py`（如保存 OAuth2 配置到 config.yaml）
 - 配置变更后通过热加载生效
 
----
-
 ## 2. 模块系统（已实现）
 
 - **位置**：`module/`
@@ -147,15 +132,11 @@ base/
 - **已用模块**：config、logger、markdown、webhandle
 - **webhandle**：为 `web/` 下 Python 提供路由加载、`handle_request`、sub_path 分发
 
----
-
 ## 3. 插件系统（已实现）
 
 - **位置**：`plugin/`
 - **行为**：路由前 pre_process、路由后 post_process
 - **实现**：PluginManager 扫描 plugin 目录、加载 Plugin 子类、按 priority 排序
-
----
 
 ## 4. 后台服务
 
@@ -185,8 +166,6 @@ base/
 - CronManager 在 main 启动/关闭时 start/stop
 - 具体调度与执行逻辑待实现
 
----
-
 ## 5. API 与路由（已实现）
 
 ### 5.1 已注册路由
@@ -214,23 +193,17 @@ base/
 - `PUT|POST /api/user/{id}/password`：修改密码
 - OAuth2：登录入口与回调在 `web/login/oauth2.py`、`web/extLogin/oauth2.py`
 
----
-
 ## 6. 前端与页面（已实现）
 
 - 根路径及子路径按 `default_files` 解析目录默认页
 - 每个子应用可有 `index.html` 等；管理端在 `web/manager/`（含 oauth2、user 等）
 - 帮助与调试页面在 `web/help/`（如 01.md、index.html）
 
----
-
 ## 7. 自动加载机制（已实现）
 
 - **core/file_watcher**：监控 module、plugin、service、etc
 - 文件变更触发对应回调（如模块/插件/服务重载、配置重载）
 - 与 main 启动时组件的初始化配合使用
-
----
 
 ## 8. 环境变量示例（.env）
 
@@ -257,18 +230,7 @@ SERVER_PORT=5000
 SESSION_SECRET=your_session_secret_here
 ```
 
----
-
-## 9. 依赖（requirements.txt 当前）
-
-- fastapi、uvicorn[standard]、python-dotenv、pyyaml、pydantic、pydantic-settings、python-multipart
-- aiofiles、watchdog、filelock
-- python-jose[cryptography]、passlib[bcrypt]、bcrypt
-- markdown、pygments、jinja2、aiohttp
-
----
-
-## 10. 待办与后续（按当前进度）
+## 9. 待办与后续（按当前进度）
 
 1. **计划任务**：在 cron 骨架基础上实现调度与执行（Shell/Python）、历史与日志
 2. **数据源**：实现 SQLite（及可选其他）数据源的 query/execute
@@ -278,11 +240,4 @@ SESSION_SECRET=your_session_secret_here
 6. **App 管理**：若需“上传/卸载 App 包、管理界面”，在现有 web/manager 与服务骨架基础上扩展
 7. **配置管理**：如需更完整的配置项增删改查与界面，在现有 manager/config 上扩展
 
----
 
-## 11. 非功能性需求（参考）
-
-- 性能：API 响应、并发、异步文件操作
-- 可靠性：优雅关闭、健康检查（已提供 /health）
-- 安全：敏感配置走环境变量、HTTPS、输入校验与 XSS 防护
-- 可维护性：日志、调试模式、监控指标
