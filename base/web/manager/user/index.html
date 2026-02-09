@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户管理 - Base Platform</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        h1 { color: #333; }
+        .back-link {
+            color: #1890ff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover { text-decoration: underline; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th { background: #fafafa; color: #333; font-weight: 500; }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .badge-local { background: #e6f7ff; color: #1890ff; }
+        .badge-oauth2 { background: #f6ffed; color: #52c41a; }
+        .badge-admin { background: #fff7e6; color: #fa8c16; }
+        .badge-user { background: #f0f0f0; color: #666; }
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button.primary { background: #1890ff; color: white; }
+        button.primary:hover { background: #40a9ff; }
+        button.danger { background: #ff4d4f; color: white; margin-left: 8px; }
+        button.danger:hover { background: #ff7875; }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 6px; color: #333; }
+        .form-group input, .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; }
+        .message { padding: 10px; margin-bottom: 15px; border-radius: 4px; }
+        .message.error { background: #fff2f0; color: #ff4d4f; }
+        .message.success { background: #f6ffed; color: #52c41a; }
+        .filter-bar { margin-bottom: 15px; }
+        .filter-bar select { padding: 6px 12px; margin-right: 10px; border-radius: 4px; }
+    </style>
+    <script>
+        const BASE_PATH = (function() {
+            const path = window.location.pathname;
+            const idx = path.indexOf('/manager');
+            return idx > 0 ? path.substring(0, idx) : '';
+        })();
+        
+        async function loadUsers(typeFilter) {
+            const url = typeFilter ? BASE_PATH + '/api/user?type=' + typeFilter : BASE_PATH + '/api/user';
+            const resp = await fetch(url);
+            const data = await resp.json();
+            return data.data || [];
+        }
+        
+        const ROLE_LABELS = { admin: '管理员', user: '用户' };
+        function renderTable(users) {
+            const tbody = document.getElementById('user-list');
+            tbody.innerHTML = users.map(u => {
+                const role = u.role || 'user';
+                return `<tr>
+                    <td>${u.id}</td>
+                    <td>${u.username}</td>
+                    <td><span class="badge badge-${u.type}">${u.type === 'local' ? '本地' : (u.oauth2_sub ? 'OAuth2' : 'OAuth2(待绑定)')}</span></td>
+                    <td><span class="badge badge-${role}">${ROLE_LABELS[role] || role}</span></td>
+                    <td>${u.display_name || '-'}</td>
+                    <td>${u.email || '-'}</td>
+                    <td>${u.enabled !== false ? '是' : '否'}</td>
+                    <td>
+                        <select onchange="updateRole(${u.id}, this.value)" style="padding:4px;margin-right:8px">
+                            <option value="admin" ${role==='admin'?'selected':''}>管理员</option>
+                            <option value="user" ${role==='user'?'selected':''}>用户</option>
+                        </select>
+                        ${u.type === 'local' ? `<button onclick="showPasswordModal(${u.id})">改密</button>` : ''}
+                        <button class="danger" onclick="deleteUser(${u.id}, '${(u.username||'').replace(/'/g,"\\'")}')">删除</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+        
+        async function refresh() {
+            const type = document.getElementById('filter-type').value;
+            const users = await loadUsers(type || undefined);
+            renderTable(users);
+        }
+        
+        async function updateRole(userId, role) {
+            try {
+                const resp = await fetch(BASE_PATH + '/api/user/' + userId, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role })
+                });
+                if (!resp.ok) {
+                    const d = await resp.json();
+                    alert(d.detail || '更新失败');
+                }
+            } catch (err) { alert(err.message); }
+        }
+        
+        async function addUser(e) {
+            e.preventDefault();
+            const form = e.target;
+            const userType = document.getElementById('add-type').value || 'local';
+            const data = {
+                type: userType,
+                username: form.username.value.trim(),
+                role: form.role.value || 'user',
+                display_name: form.display_name.value.trim(),
+                email: form.email.value.trim()
+            };
+            if (userType === 'local') {
+                data.password = form.password.value;
+            }
+            try {
+                const resp = await fetch(BASE_PATH + '/api/user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await resp.json();
+                if (resp.ok && result.success) {
+                    document.getElementById('add-modal').classList.remove('show');
+                    form.reset();
+                    refresh();
+                } else {
+                    document.getElementById('add-msg').textContent = result.detail || '添加失败';
+                    document.getElementById('add-msg').className = 'message error';
+                }
+            } catch (err) {
+                document.getElementById('add-msg').textContent = err.message;
+                document.getElementById('add-msg').className = 'message error';
+            }
+        }
+        
+        async function deleteUser(id, username) {
+            if (!confirm('确定删除用户 "' + username + '" 吗？')) return;
+            try {
+                const resp = await fetch(BASE_PATH + '/api/user/' + id, { method: 'DELETE' });
+                const data = await resp.json();
+                if (resp.ok) refresh();
+                else alert(data.detail || '删除失败');
+            } catch (err) { alert(err.message); }
+        }
+        
+        function showAddModal(userType) {
+            document.getElementById('add-msg').textContent = '';
+            document.getElementById('add-msg').className = 'message';
+            document.getElementById('add-type').value = userType || 'local';
+            document.getElementById('add-modal-title').textContent = userType === 'oauth2' ? '添加 OAuth2 用户' : '添加本地用户';
+            const isOAuth2 = userType === 'oauth2';
+            document.getElementById('add-password-group').style.display = isOAuth2 ? 'none' : 'block';
+            document.getElementById('add-local-extra').style.display = isOAuth2 ? 'none' : 'block';
+            document.getElementById('add-local-email').style.display = isOAuth2 ? 'none' : 'block';
+            document.getElementById('add-oauth2-hint').style.display = isOAuth2 ? 'block' : 'none';
+            document.getElementById('add-modal').classList.add('show');
+        }
+        
+        function showPasswordModal(userId) {
+            document.getElementById('pwd-user-id').value = userId;
+            document.getElementById('pwd-msg').textContent = '';
+            document.getElementById('pwd-modal').classList.add('show');
+        }
+        
+        async function changePassword(e) {
+            e.preventDefault();
+            const userId = document.getElementById('pwd-user-id').value;
+            const password = document.getElementById('new-password').value;
+            try {
+                const resp = await fetch(BASE_PATH + '/api/user/' + userId + '/password', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+                const data = await resp.json();
+                if (resp.ok) {
+                    document.getElementById('pwd-modal').classList.remove('show');
+                    document.getElementById('new-password').value = '';
+                } else {
+                    document.getElementById('pwd-msg').textContent = data.detail || '修改失败';
+                    document.getElementById('pwd-msg').className = 'message error';
+                }
+            } catch (err) {
+                document.getElementById('pwd-msg').textContent = err.message;
+                document.getElementById('pwd-msg').className = 'message error';
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            refresh();
+            document.getElementById('filter-type').addEventListener('change', refresh);
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>用户管理</h1>
+            <a href="../index.html" class="back-link">← 返回配置管理</a>
+        </div>
+        <div class="filter-bar">
+            <span>类型筛选：</span>
+            <select id="filter-type">
+                <option value="">全部</option>
+                <option value="local">本地用户</option>
+                <option value="oauth2">OAuth2 用户</option>
+            </select>
+            <button class="primary" onclick="showAddModal('local')" style="margin-left: 15px;">添加本地用户</button>
+            <button class="primary" onclick="showAddModal('oauth2')" style="margin-left: 8px;">添加 OAuth2 用户</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>用户名</th>
+                    <th>类型</th>
+                    <th>角色</th>
+                    <th>显示名</th>
+                    <th>邮箱</th>
+                    <th>启用</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="user-list"></tbody>
+        </table>
+    </div>
+    
+    <div id="add-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="add-modal-title" style="margin-bottom: 15px;">添加本地用户</h3>
+            <div id="add-msg" class="message"></div>
+            <form onsubmit="addUser(event)">
+                <input type="hidden" id="add-type" value="local">
+                <div class="form-group">
+                    <label>用户名 *</label>
+                    <input type="text" name="username" required placeholder="OAuth2 用户需与 OAuth2 中的 username 一致">
+                </div>
+                <div id="add-password-group" class="form-group">
+                    <label>密码 *</label>
+                    <input type="password" name="password">
+                </div>
+                <div class="form-group">
+                    <label>角色</label>
+                    <select name="role">
+                        <option value="user">用户</option>
+                        <option value="admin">管理员</option>
+                    </select>
+                </div>
+                <div id="add-local-extra" class="form-group">
+                    <label>显示名</label>
+                    <input type="text" name="display_name">
+                </div>
+                <div id="add-local-email" class="form-group">
+                    <label>邮箱</label>
+                    <input type="email" name="email">
+                </div>
+                <div id="add-oauth2-hint" class="form-group" style="display:none;color:#666;font-size:12px;margin-top:8px">
+                    显示名、邮箱等信息由 OAuth2 在登录时同步
+                </div>
+                <button type="submit" class="primary">添加</button>
+                <button type="button" onclick="document.getElementById('add-modal').classList.remove('show')">取消</button>
+            </form>
+        </div>
+    </div>
+    
+    <div id="pwd-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 15px;">修改密码</h3>
+            <div id="pwd-msg" class="message"></div>
+            <form onsubmit="changePassword(event)">
+                <input type="hidden" id="pwd-user-id">
+                <div class="form-group">
+                    <label>新密码 *</label>
+                    <input type="password" id="new-password" required>
+                </div>
+                <button type="submit" class="primary">保存</button>
+                <button type="button" onclick="document.getElementById('pwd-modal').classList.remove('show')">取消</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

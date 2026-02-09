@@ -39,9 +39,13 @@ def setup_jsonserv(app: FastAPI, config) -> Dict[str, JSONDataStore]:
     
     # 扫描 JSON 文件
     json_files = scan_json_files(data_path)
+    exclude_resources = config.get("jsonserv.exclude_resources", [])
     
     # 为每个 JSON 文件创建数据存储和路由
     for resource_name, json_file in json_files.items():
+        if resource_name in exclude_resources:
+            logger.info(f"跳过 jsonserv 资源（已排除）: {resource_name}")
+            continue
         try:
             # 加载 JSON 文件以确定主键
             with open(json_file, 'r', encoding='utf-8') as f:

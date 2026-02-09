@@ -42,6 +42,14 @@
             color: #666;
             line-height: 1.6;
         }
+        .card ul {
+            margin: 10px 0;
+            padding-left: 20px;
+            color: #666;
+        }
+        .card li {
+            margin: 6px 0;
+        }
         a {
             color: #1890ff;
             text-decoration: none;
@@ -50,13 +58,6 @@
             text-decoration: underline;
         }
     </style>
-    <script>
-        const BASE_PATH = (function() {
-            const path = window.location.pathname;
-            const idx = path.indexOf('/index.html');
-            return idx > 0 ? path.substring(0, idx) : '';
-        })();
-    </script>
 </head>
 <body>
     <div class="header">
@@ -65,15 +66,26 @@
     <div class="content">
         <div class="card">
             <h2>欢迎使用 Base Platform</h2>
-            <p>这是一个基于 FastAPI 的基础服务平台。</p>
+            <p>这是一个基于 FastAPI 的基础服务平台，提供以下功能：</p>
+            <ul>
+                <li><strong>配置管理</strong>：支持 YAML 配置文件和环境变量</li>
+                <li><strong>模块系统</strong>：全局可调用的组件模块</li>
+                <li><strong>插件系统</strong>：支持路由前后处理插件</li>
+                <li><strong>后台服务</strong>：支持多种后台服务（jsonserv、数据源、计划任务等）</li>
+                <li><strong>API 接口</strong>：提供丰富的 API 接口</li>
+                <li><strong>Web 前端</strong>：支持 Markdown 和 HTML 页面</li>
+            </ul>
         </div>
         <div class="card">
             <h2>快速链接</h2>
             <p>
-                <a href="../manager/index.html">配置管理</a> | 
-                <a href="../manager/oauth2/index.html">OAuth2 配置</a> | 
-                <a href="../help/index.html">API 文档</a> | 
-                <a href="../index.md">帮助文档</a>
+                <a href="app/index.html">应用中心</a> |
+                <a href="manager/index.html">配置管理</a> |
+                <a href="manager/oauth2/index.html">OAuth2 配置</a> |
+                <a href="manager/user/index.html">用户管理</a> |
+                <a href="login/index.html">登录</a> |
+                <a href="help/index.html">API 文档</a> |
+                <a href="/openapi.json">OpenAPI Schema</a>
             </p>
         </div>
     </div>

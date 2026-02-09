@@ -42,6 +42,9 @@ app = FastAPI(
     redoc_url=None,  # 禁用默认的 /redoc
 )
 
+# 将 config 挂载到 app.state，供 web 模块使用
+app.state.config = config
+
 # CORS 中间件
 app.add_middleware(
     CORSMiddleware,

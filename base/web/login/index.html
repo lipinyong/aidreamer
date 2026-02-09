@@ -59,6 +59,33 @@
         button:hover {
             background: #5568d3;
         }
+        .oauth2-btn {
+            margin-top: 15px;
+            background: #52c41a;
+        }
+        .oauth2-btn:hover {
+            background: #389e0d;
+        }
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            color: #999;
+            font-size: 14px;
+        }
+        .message {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .message.error {
+            background: #fff2f0;
+            color: #ff4d4f;
+        }
+        .message.success {
+            background: #f6ffed;
+            color: #52c41a;
+        }
     </style>
     <script>
         const BASE_PATH = (function() {
@@ -66,12 +93,48 @@
             const idx = path.indexOf('/login');
             return idx > 0 ? path.substring(0, idx) : '';
         })();
+        
+        async function localLogin(e) {
+            e.preventDefault();
+            const form = e.target;
+            const username = form.username.value.trim();
+            const password = form.password.value;
+            const msgEl = document.getElementById('login-message');
+            msgEl.textContent = '';
+            msgEl.className = 'message';
+            
+            if (!username || !password) {
+                msgEl.textContent = '请输入用户名和密码';
+                msgEl.className = 'message error';
+                return;
+            }
+            
+            try {
+                const resp = await fetch(BASE_PATH + '/api/user/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await resp.json();
+                if (resp.ok && data.success) {
+                    msgEl.textContent = '登录成功！用户: ' + (data.user?.display_name || data.user?.username);
+                    msgEl.className = 'message success';
+                } else {
+                    msgEl.textContent = data.detail || '登录失败';
+                    msgEl.className = 'message error';
+                }
+            } catch (err) {
+                msgEl.textContent = '请求失败: ' + err.message;
+                msgEl.className = 'message error';
+            }
+        }
     </script>
 </head>
 <body>
     <div class="login-container">
         <h1>登录</h1>
-        <form id="login-form">
+        <div id="login-message" class="message"></div>
+        <form id="login-form" onsubmit="localLogin(event)">
             <div class="form-group">
                 <label>用户名</label>
                 <input type="text" name="username" required>
@@ -80,8 +143,40 @@
                 <label>密码</label>
                 <input type="password" name="password" required>
             </div>
-            <button type="submit">登录</button>
+            <button type="submit">本地登录</button>
         </form>
+        <div class="divider">或</div>
+        <a href="" id="oauth2-link">
+            <button type="button" class="oauth2-btn">OAuth2 登录</button>
+        </a>
     </div>
+    <script>
+        (function() {
+            const oauth2Cfg = {
+                enabled: false,
+                buttonText: 'OAuth2 登录'
+            };
+            fetch(BASE_PATH + '/raw/etc/config.yaml').then(r => r.text()).then(text => {
+                const lines = text.split('\n');
+                let inOAuth2 = false;
+                for (const line of lines) {
+                    if (line.trim().startsWith('oauth2:')) inOAuth2 = true;
+                    else if (inOAuth2 && line.includes(':')) {
+                        const [k, v] = line.split(':').map(s => s.trim());
+                        if (k === 'enabled') oauth2Cfg.enabled = v === 'true';
+                        else if (k === 'button_text') oauth2Cfg.buttonText = v.replace(/^["']|["']$/g, '');
+                    }
+                }
+                const link = document.getElementById('oauth2-link');
+                const btn = link.querySelector('button');
+                btn.textContent = oauth2Cfg.buttonText;
+                if (oauth2Cfg.enabled) {
+                    link.href = BASE_PATH + '/api/ExtLogin/oauth2';
+                } else {
+                    link.style.display = 'none';
+                }
+            }).catch(() => {});
+        })();
+    </script>
 </body>
 </html>

@@ -112,6 +112,23 @@ def setup_routes(
         logger.error("未找到任何默认文件")
         raise HTTPException(status_code=404, detail="目录下没有默认文件")
     
+    def _resolve_raw_path(path: str) -> Path:
+        """解析 /raw/ 路径，返回安全的文件路径"""
+        if path.startswith("etc/"):
+            file_path = base_dir / path
+            etc_dir = base_dir / "etc"
+            try:
+                file_path.resolve().relative_to(etc_dir.resolve())
+            except ValueError:
+                raise HTTPException(status_code=403, detail="访问被拒绝")
+        else:
+            file_path = web_dir / path
+            try:
+                file_path.resolve().relative_to(web_dir.resolve())
+            except ValueError:
+                raise HTTPException(status_code=403, detail="访问被拒绝")
+        return file_path
+
     @app.get("/raw/{path:path}")
     async def read_raw_file(path: str):
         """
@@ -120,28 +137,11 @@ def setup_routes(
         不支持二进制文件
         支持访问 web/ 和 etc/ 目录下的文件
         """
-        # 检查是否是 etc/ 目录下的文件
-        if path.startswith("etc/"):
-            file_path = base_dir / path
-            # 安全检查：确保路径在 base_dir/etc 内
-            etc_dir = base_dir / "etc"
-            try:
-                file_path.resolve().relative_to(etc_dir.resolve())
-            except ValueError:
-                raise HTTPException(status_code=403, detail="访问被拒绝")
-        else:
-            # 默认访问 web_dir 下的文件
-            file_path = web_dir / path
-            # 安全检查：防止路径遍历
-            try:
-                file_path.resolve().relative_to(web_dir.resolve())
-            except ValueError:
-                raise HTTPException(status_code=403, detail="访问被拒绝")
+        file_path = _resolve_raw_path(path)
         
         if not file_path.exists() or not file_path.is_file():
             raise HTTPException(status_code=404, detail="文件不存在")
         
-        # 检查是否为二进制文件
         if file_path.suffix.lower() in ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.zip']:
             raise HTTPException(status_code=400, detail="不支持二进制文件")
         
@@ -151,6 +151,35 @@ def setup_routes(
             return Response(content=content, media_type="text/plain")
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"读取文件失败: {str(e)}")
+
+    @app.put("/raw/{path:path}")
+    async def write_raw_file(path: str, request: Request):
+        """
+        写入文件原始内容
+        支持写入 web/ 和 etc/ 目录下的文件
+        """
+        file_path = _resolve_raw_path(path)
+        
+        if file_path.suffix.lower() in ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.zip']:
+            raise HTTPException(status_code=400, detail="不支持二进制文件")
+        
+        try:
+            body = await request.body()
+            content = body.decode('utf-8')
+            
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            async with aiofiles.open(file_path, 'w', encoding='utf-8') as f:
+                await f.write(content)
+            
+            if path == "etc/config.yaml":
+                config.reload()
+                logger.info("配置文件已更新并重新加载")
+            
+            return JSONResponse(content={"success": True, "message": "文件保存成功"})
+        except Exception as e:
+            logger.error(f"写入文件失败: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"写入文件失败: {str(e)}")
     
     @app.get("/tree/{path:path}")
     @app.post("/tree/{path:path}")
@@ -227,53 +256,8 @@ def setup_routes(
                 return JSONResponse(content={"message": "删除成功"})
             else:
                 raise HTTPException(status_code=404, detail="路径不存在")
-    
-    @app.post("/api/config/oauth2")
-    async def save_oauth2_config(request: Request):
-        """
-        保存 OAuth2 配置
-        """
-        try:
-            data = await request.json()
-            
-            # 构建 OAuth2 配置结构
-            oauth2_config = {
-                "enabled": data.get("enabled", False),
-                "server": {
-                    "host": data.get("server", {}).get("host", ""),
-                    "protocol": data.get("server", {}).get("protocol", "HTTPS"),
-                    "authorize_path": data.get("server", {}).get("authorize_path", "/oauth/v2/authorize"),
-                    "token_path": data.get("server", {}).get("token_path", "/oauth/v2/token"),
-                    "resource_path": data.get("server", {}).get("resource_path", "/oauth/v2/resource"),
-                    "userinfo_path": data.get("server", {}).get("userinfo_path", "/oauth/v2/me")
-                },
-                "client": {
-                    "client_id": data.get("client", {}).get("client_id", ""),
-                    "client_secret": data.get("client", {}).get("client_secret", ""),
-                    "callback_url": data.get("client", {}).get("callback_url", ""),
-                    "logout_callback_url": data.get("client", {}).get("logout_callback_url", "")
-                },
-                "login": {
-                    "button_text": data.get("login", {}).get("button_text", "使用 OAuth2 登录")
-                },
-                "admin": {
-                    "oauth2_protocol": data.get("admin", {}).get("oauth2_protocol", "HTTPS"),
-                    "oauth2_userinfo_path": data.get("admin", {}).get("oauth2_userinfo_path", "/oauth/v2/me")
-                }
-            }
-            
-            # 更新配置
-            config.update_oauth2_config(oauth2_config)
-            
-            return JSONResponse(content={
-                "success": True,
-                "message": "OAuth2 配置保存成功"
-            })
-        except Exception as e:
-            logger.error(f"保存 OAuth2 配置失败: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"保存配置失败: {str(e)}")
-    
-    @app.get("/api/{path:path}")
+       
+    @app.api_route("/api/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
     async def api_handler(path: str, request: Request):
         """
         API 执行接口
@@ -314,7 +298,13 @@ def setup_routes(
         
         # 使用 webhandle 处理请求
         return await webhandle.handle_request(request, path)
-    
+
+    @app.get("/openapi.json")
+    async def openapi_schema():
+        """OpenAPI 文档（自动生成）"""
+        # TODO: 自动扫描 web/ 目录下的 Python 文件并生成 OpenAPI 文档
+        return JSONResponse(content=app.openapi())
+        
     @app.get("/{path:path}")
     async def web_handler(path: str, request: Request):
         """
@@ -420,8 +410,4 @@ def setup_routes(
         else:
             raise HTTPException(status_code=404, detail="文件不存在")
     
-    @app.get("/openapi.json")
-    async def openapi_schema():
-        """OpenAPI 文档（自动生成）"""
-        # TODO: 自动扫描 web/ 目录下的 Python 文件并生成 OpenAPI 文档
-        return JSONResponse(content=app.openapi())
+

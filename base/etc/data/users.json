@@ -1,0 +1,65 @@
+{
+  "data": [
+    {
+      "username": "20110032",
+      "type": "oauth2",
+      "role": "user",
+      "oauth2_sub": "",
+      "enabled": true,
+      "created_at": 1770554118,
+      "updated_at": 1770585639,
+      "id": 1,
+      "display_name": "20110032",
+      "email": null,
+      "oauth2_info": {
+        "principal": {
+          "username": "20110032",
+          "password": null,
+          "cname": "李品勇",
+          "phone": "18817655325",
+          "enabled": true,
+          "cookieId": null,
+          "authorities": [],
+          "authorityMap": null,
+          "gender": null,
+          "employeeNo": null,
+          "gitlabUsername": "lipinyong",
+          "accountNonExpired": true,
+          "accountNonLocked": true,
+          "credentialsNonExpired": true
+        },
+        "credentials": null,
+        "authorities": [],
+        "authenticated": true,
+        "details": null,
+        "name": "20110032"
+      }
+    },
+    {
+      "username": "admin",
+      "type": "local",
+      "role": "admin",
+      "password_hash": "$2b$12$XD3F6xaR.RuLI6fBWv3SwusctZxA1r15ub8wypck0KpGZMl/2S18G",
+      "display_name": "管理员",
+      "email": "",
+      "enabled": true,
+      "created_at": 1770555039,
+      "updated_at": 1770555729,
+      "id": 2,
+      "password": "gs123!@#GS"
+    },
+    {
+      "username": "user",
+      "type": "local",
+      "role": "user",
+      "password_hash": "$2b$12$xSc3PcmlTBbiDKU1sRZxkeNkB4AKknM72oMb8kIgnDIq5oWH2ZuVW",
+      "display_name": "user",
+      "email": "",
+      "enabled": true,
+      "created_at": 1770555228,
+      "updated_at": 1770555228,
+      "id": 3
+    }
+  ],
+  "primary_key": "id"
+}

@@ -107,7 +107,7 @@ class WebHandle:
             traceback.print_exc()
             return None
     
-    def handle_request(self, request: Request, path: str) -> Response:
+    async def handle_request(self, request: Request, path: str) -> Response:
         """
         处理请求
         
@@ -118,8 +118,23 @@ class WebHandle:
         Returns:
             FastAPI 响应对象
         """
-        # 转换为文件路径
+        # 先尝试精确匹配
         file_path = self.web_dir / f"{path}.py"
+        sub_path = ''
+        
+        # 如果精确匹配不存在，尝试向上查找父路径
+        if not file_path.exists():
+            parts = path.split('/')
+            for i in range(len(parts) - 1, 0, -1):
+                parent_path = '/'.join(parts[:i])
+                parent_file = self.web_dir / f"{parent_path}.py"
+                if parent_file.exists():
+                    file_path = parent_file
+                    sub_path = '/'.join(parts[i:])
+                    break
+        
+        # 将 sub_path 存入 request.state
+        request.state.sub_path = sub_path
         
         # 加载模块
         module = self.load_module(file_path)
@@ -146,8 +161,12 @@ class WebHandle:
             raise HTTPException(status_code=500, detail="未找到处理函数")
         
         try:
-            # 调用处理函数
-            result = handler(request)
+            # 调用处理函数（支持同步和异步）
+            import asyncio
+            if asyncio.iscoroutinefunction(handler):
+                result = await handler(request)
+            else:
+                result = handler(request)
             
             # 处理返回值
             if isinstance(result, Response):

@@ -32,7 +32,7 @@ class Config:
         self.base_dir = Path(__file__).parent.parent
         self.config_path = Path(config_path) if config_path else self.base_dir / "etc" / "config.yaml"
         self._config: Dict[str, Any] = {}
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
         self.observer = None
         
         # 加载配置
