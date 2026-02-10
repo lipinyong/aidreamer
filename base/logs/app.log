@@ -487,3 +487,13 @@
 {"time": "2026-02-09 01:56:48,284", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/etc"}
 {"time": "2026-02-09 01:56:48,356", "level": "INFO", "module": "baseplatform", "message": "文件监控已启动"}
 {"time": "2026-02-09 01:56:48,356", "level": "INFO", "module": "baseplatform", "message": "Base Platform 启动完成"}
+{"time": "2026-02-09 21:00:29,500", "level": "INFO", "module": "baseplatform.jsonserv", "message": "跳过 jsonserv 资源（已排除）: users"}
+{"time": "2026-02-09 21:00:29,502", "level": "INFO", "module": "baseplatform", "message": "Base Platform 启动中..."}
+{"time": "2026-02-09 21:00:29,508", "level": "INFO", "module": "baseplatform.plugin", "message": "加载插件: router"}
+{"time": "2026-02-09 21:00:29,518", "level": "INFO", "module": "baseplatform.cron", "message": "计划任务管理器启动"}
+{"time": "2026-02-09 21:00:29,519", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/module"}
+{"time": "2026-02-09 21:00:29,520", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/plugin"}
+{"time": "2026-02-09 21:00:29,521", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/service"}
+{"time": "2026-02-09 21:00:29,522", "level": "INFO", "module": "baseplatform", "message": "监控目录: /app/etc"}
+{"time": "2026-02-09 21:00:29,582", "level": "INFO", "module": "baseplatform", "message": "文件监控已启动"}
+{"time": "2026-02-09 21:00:29,583", "level": "INFO", "module": "baseplatform", "message": "Base Platform 启动完成"}
